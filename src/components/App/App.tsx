@@ -1,12 +1,18 @@
 import "./App.css";
-import { useFetch } from "../../hooks/useFetch";
+import { useQuery } from "@tanstack/react-query";
+import { executeGet } from "Util/request";
 
 function App() {
-  const { isLoading, data } = useFetch();
+  const { isPending, data } = useQuery({
+    queryKey: ["tester"],
+    queryFn: () => executeGet(),
+  });
 
-  if (isLoading) {
+  if (isPending) {
     return <div>Loading...</div>;
   }
+
+  console.log(">> data", data);
 
   const { message } = data || {};
 

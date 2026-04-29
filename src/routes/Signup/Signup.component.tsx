@@ -12,10 +12,13 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import MuiCard from "@mui/material/Card";
+import Alert from "@mui/material/Alert";
 import { styled, createTheme, ThemeProvider } from "@mui/material/styles";
+import { useMutation } from "@tanstack/react-query";
 import GoogleIcon from "Components/GoogleIcon/GoogleIcon.component.tsx";
 import FacebookIcon from "Components/FacebookIcon/FacebookIcon.component.tsx";
 import SitemarkIcon from "Components/SitemarkIcon/SitemarkIcon.component.tsx";
+import { executePost } from "../../util/request";
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: "flex",
@@ -73,6 +76,10 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
   const [nameError, setNameError] = React.useState(false);
   const [nameErrorMessage, setNameErrorMessage] = React.useState("");
 
+  const mutation = useMutation({
+    mutationFn: (userData) => executePost("user", JSON.stringify(userData)),
+  });
+
   const validateInputs = () => {
     const email = document.getElementById("email") as HTMLInputElement;
     const password = document.getElementById("password") as HTMLInputElement;
@@ -111,12 +118,14 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    if (nameError || emailError || passwordError) {
-      event.preventDefault();
+    event.preventDefault();
+
+    if (!validateInputs()) {
       return;
     }
+
     const data = new FormData(event.currentTarget);
-    console.log({
+    mutation.mutate({
       name: data.get("name"),
       lastName: data.get("lastName"),
       email: data.get("email"),
@@ -145,6 +154,14 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
             onSubmit={handleSubmit}
             sx={{ display: "flex", flexDirection: "column", gap: 2 }}
           >
+            {mutation.isError && (
+              <Alert severity="error">
+                {mutation.error?.message || "Signup failed. Please try again."}
+              </Alert>
+            )}
+            {mutation.isSuccess && (
+              <Alert severity="success">Account created successfully!</Alert>
+            )}
             <FormControl>
               <FormLabel htmlFor="name">Full name</FormLabel>
               <TextField
@@ -198,9 +215,9 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
               type="submit"
               fullWidth
               variant="contained"
-              onClick={validateInputs}
+              disabled={mutation.isPending}
             >
-              Sign up
+              {mutation.isPending ? "Signing up..." : "Sign up"}
             </Button>
           </Box>
           <Divider>

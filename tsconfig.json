@@ -10,7 +10,8 @@
       "Components": ["./src/components/*"],
       "Routes": ["./src/routes/*"],
       "Hooks": ["./src/hooks"],
-      "Types": ["./src/types"]
+      "Types": ["./src/types"],
+      "Util": ["./src/util"]
     }
   }
 }
