@@ -7,6 +7,17 @@
     "esModuleInterop": true,
     "ignoreDeprecations": "6.0",
     "allowImportingTsExtensions": true,
-    "noEmit": true
+    "noEmit": true,
+    "baseUrl": "."
+  },
+  "paths": {
+    "types/*": ["./types/*"]
+  },
+  "ts-node": {
+    "esm": true,
+    "experimentalEsm": true,
+    "compilerOptions": {
+      "module": "ESNext"
+    }
   }
 }

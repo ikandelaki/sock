@@ -2,6 +2,8 @@ import "dotenv/config";
 import express, { type Request, type Response } from "express";
 import cors from "cors";
 import { DEVELOPMENT_MODE } from "./config.ts";
+import User from "types/User";
+import { prisma } from "lib/prisma.ts";
 
 const app = express();
 const port = process.env["PORT"];
@@ -23,8 +25,30 @@ app.get("/", async (req: Request, res: Response) => {
 });
 
 app.post("/user", async (req: Request, res: Response) => {
-  const body = req.body;
-  console.log(">> req", req.body);
+  try {
+    const body = req.body;
+    const { name, email, password } = User.parse(body);
+
+    const data = await prisma.user.create({
+      data: {
+        name,
+        email,
+        password,
+      },
+    });
+
+    return res.json({
+      status: 200,
+      message: "User created successfully",
+      data,
+    });
+  } catch (err) {
+    console.error(">> err", err);
+    return res.json({
+      status: 400,
+      message: "Error while creating a user",
+    });
+  }
 });
 
 app.listen(port, () => {
