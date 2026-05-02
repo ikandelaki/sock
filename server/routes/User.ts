@@ -18,7 +18,7 @@ router.post("/create", async (req: Request, res: Response) => {
     });
 
     if (userExists) {
-      return res.status(400).json({
+      return res.status(200).json({
         type: TYPE_ERROR,
         message: "User with such email already exists",
       });
