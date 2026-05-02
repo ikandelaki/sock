@@ -3,6 +3,7 @@ import express, { Request, Response } from "express";
 import User from "types/User";
 import { prisma } from "lib/prisma";
 import { TYPE_ERROR, TYPE_SUCCESS } from "types/Response";
+import { generateToken } from "lib/auth";
 
 const router = express.Router();
 const saltRounds = 10;
@@ -33,6 +34,8 @@ router.post("/create", async (req: Request, res: Response) => {
         password: hashedPassword,
       },
     });
+
+    generateToken;
 
     return res.status(200).json({
       type: TYPE_SUCCESS,
