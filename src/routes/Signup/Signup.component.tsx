@@ -77,7 +77,8 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
   const [nameErrorMessage, setNameErrorMessage] = React.useState("");
 
   const mutation = useMutation({
-    mutationFn: (userData) => executePost("user", JSON.stringify(userData)),
+    mutationFn: (userData) =>
+      executePost("user/create", JSON.stringify(userData)),
   });
 
   const validateInputs = () => {
@@ -117,7 +118,7 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
     return isValid;
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!validateInputs()) {
@@ -125,12 +126,15 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
     }
 
     const data = new FormData(event.currentTarget);
-    mutation.mutate({
+    console.log(">> event", event.currentTarget);
+    console.log(">> name", data.get("password"));
+    const res = await mutation.mutate({
       name: data.get("name"),
       lastName: data.get("lastName"),
       email: data.get("email"),
       password: data.get("password"),
     });
+    console.log(">> res", res);
   };
 
   return (
