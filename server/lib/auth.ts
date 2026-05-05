@@ -1,8 +1,9 @@
 import { decode, sign, verify } from "jsonwebtoken";
+import { UserType } from "types/User";
 
 export const tokenExpiration = {
-  access_token: 3600,
-  refresh_token: 60,
+  access_token: "7d",
+  refresh_token: "30d",
 };
 
 export enum TokenType {
@@ -16,34 +17,25 @@ type JWT = {
   sub: string;
 };
 
+type PayloadType = {
+  id: number;
+  email: string;
+  name: string;
+};
+
 const secret = process.env["JWT_SECRET"]!;
+const refreshSecret = process.env["REFRESH_SECRET"]!;
 
-export const generateAccessToken = (userId: string) => {
-  return generateToken(userId, TokenType.ACCESS_TOKEN);
-};
+export const generateTokens = (user: UserType) => {
+  const { id, email, name } = user;
+  const payload: PayloadType = { id: id!, email, name };
 
-export const generateRefreshToken = (userId: string) => {
-  return generateToken(userId, TokenType.REFRESH_TOKEN);
-};
-
-const generateToken = (userId: string, type: TokenType) => {
-  const expiration = tokenExpiration[type];
-  const token = sign({ type }, secret, {
-    expiresIn: expiration,
-    subject: userId,
+  const accessToken = sign(payload, secret, {
+    expiresIn: tokenExpiration.access_token,
+  });
+  const refreshToken = sign(payload, refreshSecret, {
+    expiresIn: tokenExpiration.refresh_token,
   });
 
-  return {
-    token,
-    expiration,
-  };
-};
-
-export const getTokenType = (token: string): TokenType => {
-  return (verify(token, secret) as JWT).type;
-};
-
-export const parseTokenAndGetUserId = (token: string): string => {
-  const decoded = verify(token, secret) as JWT;
-  return decoded.sub || "";
+  return { accessToken, refreshToken };
 };

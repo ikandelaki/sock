@@ -126,9 +126,8 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
     }
 
     const data = new FormData(event.currentTarget);
-    console.log(">> event", event.currentTarget);
-    console.log(">> name", data.get("password"));
-    const res = await mutation.mutate({
+
+    const res = await mutation.mutateAsync({
       name: data.get("name"),
       lastName: data.get("lastName"),
       email: data.get("email"),
