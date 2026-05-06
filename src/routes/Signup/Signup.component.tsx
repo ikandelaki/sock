@@ -78,7 +78,7 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
 
   const mutation = useMutation({
     mutationFn: (userData) =>
-      executePost("user/create", JSON.stringify(userData)),
+      executePost("user/register", JSON.stringify(userData)),
   });
 
   const validateInputs = () => {

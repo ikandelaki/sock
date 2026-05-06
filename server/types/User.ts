@@ -1,12 +1,16 @@
 import * as z from "zod";
 
-export const User = z.object({
+export const UserRegister = z.object({
   id: z.number().optional(),
   email: z.string(),
   name: z.string(),
   password: z.string(),
 });
 
-export type UserType = z.infer<typeof User>;
+export const UserLogin = z.object({
+  email: z.string(),
+  password: z.string(),
+});
 
-export default User;
+export type UserRegisterType = z.infer<typeof UserRegister>;
+export type UserLoginType = z.infer<typeof UserLogin>;

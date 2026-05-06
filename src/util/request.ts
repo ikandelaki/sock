@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:3000";
+const BASE_URL = "http://localhost:3000/api";
 
 export const executePost = async (endpoint: string = "", body?: string) => {
   const res = await fetch(`${BASE_URL}/${endpoint}`, {
