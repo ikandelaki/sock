@@ -11,7 +11,8 @@
       "Routes": ["./src/routes/*"],
       "Hooks": ["./src/hooks"],
       "Types": ["./src/types"],
-      "Util": ["./src/util"]
+      "Util": ["./src/util"],
+      "Context": ["./src/context"]
     }
   }
 }

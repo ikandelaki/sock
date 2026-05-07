@@ -1,9 +1,7 @@
-import * as React from "react";
+import { useEffect, useState, type SubmitEvent } from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Checkbox from "@mui/material/Checkbox";
 import CssBaseline from "@mui/material/CssBaseline";
-import FormControlLabel from "@mui/material/FormControlLabel";
 import Divider from "@mui/material/Divider";
 import FormLabel from "@mui/material/FormLabel";
 import FormControl from "@mui/material/FormControl";
@@ -12,11 +10,11 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import MuiCard from "@mui/material/Card";
+import Alert from "@mui/material/Alert";
+import CircularProgress from "@mui/material/CircularProgress";
 import { styled, createTheme, ThemeProvider } from "@mui/material/styles";
-import ForgotPassword from "Components/ForgotPassword/ForgotPassword.component.tsx";
-import GoogleIcon from "Components/GoogleIcon/GoogleIcon.component.tsx";
-import FacebookIcon from "Components/FacebookIcon/FacebookIcon.component.tsx";
-import SitemarkIcon from "Components/SitemarkIcon/SitemarkIcon.component.tsx";
+import { useNavigate } from "react-router";
+import { useAuth } from "Context/AuthContext";
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: "flex",
@@ -67,30 +65,45 @@ const darkTheme = createTheme({
 });
 
 export default function Login(props: { disableCustomTheme?: boolean }) {
-  const [emailError, setEmailError] = React.useState(false);
-  const [emailErrorMessage, setEmailErrorMessage] = React.useState("");
-  const [passwordError, setPasswordError] = React.useState(false);
-  const [passwordErrorMessage, setPasswordErrorMessage] = React.useState("");
-  const [open, setOpen] = React.useState(false);
+  const navigate = useNavigate();
+  const { login, isAuthenticated } = useAuth();
 
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
+  const [emailError, setEmailError] = useState(false);
+  const [emailErrorMessage, setEmailErrorMessage] = useState("");
+  const [passwordError, setPasswordError] = useState(false);
+  const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleClose = () => {
-    setOpen(false);
-  };
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/myaccount");
+    }
+  }, [isAuthenticated, navigate]);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: SubmitEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
     if (emailError || passwordError) {
-      event.preventDefault();
       return;
     }
+
     const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get("email"),
-      password: data.get("password"),
-    });
+    const email = data.get("email") as string;
+    const password = data.get("password") as string;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      await login(email, password);
+      navigate("/messenger");
+    } catch (err: any) {
+      setError(err.message || "Login failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const validateInputs = () => {
@@ -128,7 +141,6 @@ export default function Login(props: { disableCustomTheme?: boolean }) {
         sx={{ justifyContent: "space-between" }}
       >
         <Card variant="outlined">
-          <SitemarkIcon />
           <Typography
             component="h1"
             variant="h4"
@@ -147,6 +159,7 @@ export default function Login(props: { disableCustomTheme?: boolean }) {
               gap: 2,
             }}
           >
+            {error && <Alert severity="error">{error}</Alert>}
             <FormControl>
               <FormLabel htmlFor="email">Email</FormLabel>
               <TextField
@@ -181,54 +194,21 @@ export default function Login(props: { disableCustomTheme?: boolean }) {
                 color={passwordError ? "error" : "primary"}
               />
             </FormControl>
-            <FormControlLabel
-              control={<Checkbox value="remember" color="primary" />}
-              label="Remember me"
-            />
-            <ForgotPassword open={open} handleClose={handleClose} />
             <Button
               type="submit"
               fullWidth
               variant="contained"
+              disabled={loading}
               onClick={validateInputs}
             >
-              Sign in
+              {loading ? <CircularProgress size={24} /> : "Sign in"}
             </Button>
-            <Link
-              component="button"
-              type="button"
-              onClick={handleClickOpen}
-              variant="body2"
-              sx={{ alignSelf: "center" }}
-            >
-              Forgot your password?
-            </Link>
           </Box>
           <Divider>or</Divider>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={() => alert("Sign in with Google")}
-              startIcon={<GoogleIcon />}
-            >
-              Sign in with Google
-            </Button>
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={() => alert("Sign in with Facebook")}
-              startIcon={<FacebookIcon />}
-            >
-              Sign in with Facebook
-            </Button>
             <Typography sx={{ textAlign: "center" }}>
               Don&apos;t have an account?{" "}
-              <Link
-                href="/material-ui/getting-started/templates/sign-in/"
-                variant="body2"
-                sx={{ alignSelf: "center" }}
-              >
+              <Link href="signup" variant="body2" sx={{ alignSelf: "center" }}>
                 Sign up
               </Link>
             </Typography>

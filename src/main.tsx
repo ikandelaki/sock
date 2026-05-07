@@ -10,6 +10,7 @@ import MyAccount from "./routes/MyAccount/MyAccount.component";
 import Login from "Routes/Login/Login.component.tsx";
 import SignUp from "Routes/Signup/Signup.component.tsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { AuthProvider } from "./context/AuthContext";
 
 const queryClient = new QueryClient();
 
@@ -19,17 +20,23 @@ const router = createBrowserRouter([
     Component: App,
   },
   {
-    path: "account",
+    path: "/account/login",
+    Component: Login,
+  },
+  {
+    path: "/account/signup",
+    Component: SignUp,
+  },
+  {
+    path: "/myaccount",
     Component: MyAccount,
-    children: [
-      { path: "login", Component: Login },
-      { path: "signup", Component: SignUp },
-    ],
   },
 ]);
 
 createRoot(document.getElementById("root")!).render(
   <QueryClientProvider client={queryClient}>
-    <RouterProvider router={router} />,
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
   </QueryClientProvider>,
 );

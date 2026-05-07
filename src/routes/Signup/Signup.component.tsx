@@ -13,12 +13,12 @@ import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import MuiCard from "@mui/material/Card";
 import Alert from "@mui/material/Alert";
+import CircularProgress from "@mui/material/CircularProgress";
 import { styled, createTheme, ThemeProvider } from "@mui/material/styles";
-import { useMutation } from "@tanstack/react-query";
+import { useNavigate } from "react-router";
 import GoogleIcon from "Components/GoogleIcon/GoogleIcon.component.tsx";
 import FacebookIcon from "Components/FacebookIcon/FacebookIcon.component.tsx";
-import SitemarkIcon from "Components/SitemarkIcon/SitemarkIcon.component.tsx";
-import { executePost } from "../../util/request";
+import { useAuth } from "Context/AuthContext";
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: "flex",
@@ -69,17 +69,25 @@ const darkTheme = createTheme({
 });
 
 export default function SignUp(props: { disableCustomTheme?: boolean }) {
+  const navigate = useNavigate();
+  const { register, isAuthenticated } = useAuth();
+
   const [emailError, setEmailError] = React.useState(false);
   const [emailErrorMessage, setEmailErrorMessage] = React.useState("");
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState("");
   const [nameError, setNameError] = React.useState(false);
   const [nameErrorMessage, setNameErrorMessage] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [success, setSuccess] = React.useState(false);
 
-  const mutation = useMutation({
-    mutationFn: (userData) =>
-      executePost("user/register", JSON.stringify(userData)),
-  });
+  // Redirect if already authenticated
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/myaccount");
+    }
+  }, [isAuthenticated, navigate]);
 
   const validateInputs = () => {
     const email = document.getElementById("email") as HTMLInputElement;
@@ -126,14 +134,25 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
     }
 
     const data = new FormData(event.currentTarget);
+    const name = data.get("name") as string;
+    const email = data.get("email") as string;
+    const password = data.get("password") as string;
 
-    const res = await mutation.mutateAsync({
-      name: data.get("name"),
-      lastName: data.get("lastName"),
-      email: data.get("email"),
-      password: data.get("password"),
-    });
-    console.log(">> res", res);
+    setLoading(true);
+    setError(null);
+    setSuccess(false);
+
+    try {
+      await register(name, email, password);
+      setSuccess(true);
+      setTimeout(() => {
+        navigate("/myaccount");
+      }, 1500);
+    } catch (err: any) {
+      setError(err.message || "Signup failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -144,7 +163,6 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
         sx={{ justifyContent: "space-between" }}
       >
         <Card variant="outlined">
-          <SitemarkIcon />
           <Typography
             component="h1"
             variant="h4"
@@ -157,13 +175,11 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
             onSubmit={handleSubmit}
             sx={{ display: "flex", flexDirection: "column", gap: 2 }}
           >
-            {mutation.isError && (
-              <Alert severity="error">
-                {mutation.error?.message || "Signup failed. Please try again."}
+            {error && <Alert severity="error">{error}</Alert>}
+            {success && (
+              <Alert severity="success">
+                Account created successfully! Redirecting...
               </Alert>
-            )}
-            {mutation.isSuccess && (
-              <Alert severity="success">Account created successfully!</Alert>
             )}
             <FormControl>
               <FormLabel htmlFor="name">Full name</FormLabel>
@@ -191,7 +207,7 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
                 variant="outlined"
                 error={emailError}
                 helperText={emailErrorMessage}
-                color={passwordError ? "error" : "primary"}
+                color={emailError ? "error" : "primary"}
               />
             </FormControl>
             <FormControl>
@@ -210,46 +226,22 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
                 color={passwordError ? "error" : "primary"}
               />
             </FormControl>
-            <FormControlLabel
-              control={<Checkbox value="allowExtraEmails" color="primary" />}
-              label="I want to receive updates via email."
-            />
             <Button
               type="submit"
               fullWidth
               variant="contained"
-              disabled={mutation.isPending}
+              disabled={loading}
             >
-              {mutation.isPending ? "Signing up..." : "Sign up"}
+              {loading ? <CircularProgress size={24} /> : "Sign up"}
             </Button>
           </Box>
           <Divider>
             <Typography sx={{ color: "text.secondary" }}>or</Typography>
           </Divider>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={() => alert("Sign up with Google")}
-              startIcon={<GoogleIcon />}
-            >
-              Sign up with Google
-            </Button>
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={() => alert("Sign up with Facebook")}
-              startIcon={<FacebookIcon />}
-            >
-              Sign up with Facebook
-            </Button>
             <Typography sx={{ textAlign: "center" }}>
               Already have an account?{" "}
-              <Link
-                href="/material-ui/getting-started/templates/sign-in/"
-                variant="body2"
-                sx={{ alignSelf: "center" }}
-              >
+              <Link href="login" variant="body2" sx={{ alignSelf: "center" }}>
                 Sign in
               </Link>
             </Typography>
