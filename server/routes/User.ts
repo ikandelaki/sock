@@ -1,9 +1,15 @@
 import bcrypt from "bcrypt";
 import express, { Request, Response } from "express";
-import User, { UserLogin } from "types/User";
+import { UserRegister, UserLogin } from "types/User";
 import { prisma } from "lib/prisma";
 import { TYPE_ERROR, TYPE_SUCCESS } from "types/Response";
-import { generateAccessToken } from "lib/auth";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  revokeRefreshToken,
+  saveRefreshToken,
+} from "lib/auth";
+import { authenticate } from "middleware/auth";
 
 const router = express.Router();
 const saltRounds = 10;
@@ -11,7 +17,7 @@ const saltRounds = 10;
 router.post("/register", async (req: Request, res: Response) => {
   try {
     const body = req.body;
-    const { name, email, password } = User.parse(body);
+    const { name, email, password } = UserRegister.parse(body);
     const userExists = await prisma.user.findUnique({
       where: {
         email,
@@ -42,11 +48,14 @@ router.post("/register", async (req: Request, res: Response) => {
     });
 
     const accessToken = generateAccessToken(user.id);
+    const refreshToken = generateRefreshToken(user.id);
+    await saveRefreshToken(user.id, refreshToken);
 
     return res.status(200).json({
       type: TYPE_SUCCESS,
       message: "User created successfully",
       accessToken,
+      refreshToken,
       user,
     });
   } catch (err) {
@@ -85,11 +94,14 @@ router.post("/login", async (req: Request, res: Response) => {
     }
 
     const accessToken = generateAccessToken(user.id);
+    const refreshToken = generateRefreshToken(user.id);
+    await saveRefreshToken(user.id, refreshToken);
 
     return res.status(200).json({
       type: TYPE_SUCCESS,
       message: "Logged in successfully!",
       accessToken,
+      refreshToken,
     });
   } catch (e) {
     console.log(">> login error", e);
@@ -99,5 +111,27 @@ router.post("/login", async (req: Request, res: Response) => {
     });
   }
 });
+
+router.post("/logout", authenticate, async (req: Request, res: Response) => {
+  try {
+    const { refreshToken } = req.body;
+    if (refreshToken) {
+      await revokeRefreshToken(refreshToken);
+    }
+
+    res.status(200).json({
+      type: TYPE_SUCCESS,
+      message: "Logged out successfully",
+    });
+  } catch (e) {
+    console.log(">> logout error", e);
+    res.status(500).json({
+      type: TYPE_ERROR,
+      message: "Internal server error",
+    });
+  }
+});
+
+router.get("/me", authenticate, (req, res) => res.json({ user: req.user }));
 
 export default router;
