@@ -13,15 +13,14 @@ datasource db {
 }
 
 model User { 
-  id          Int       @id @default(autoincrement()) 
-  email       String    @unique
-  name        String?
-  password    String
-  createdAt   DateTime  @default(now())
-
-  // Required by Prisma for relation resolution, but you can ignore them in queries
-  sentMessages     Message[] @relation("SentMessages")
-  receivedMessages Message[] @relation("ReceivedMessages")
+  id                Int       @id @default(autoincrement()) 
+  email             String    @unique
+  name              String?
+  password          String
+  createdAt         DateTime  @default(now())
+  sentMessages      Message[] @relation("SentMessages")
+  receivedMessages  Message[] @relation("ReceivedMessages")
+  refreshTokens     RefreshToken[]
 }
 
 model Message {
@@ -32,4 +31,13 @@ model Message {
   content     String
   senderId    Int
   recipientId Int
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 }
