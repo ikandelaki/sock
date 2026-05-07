@@ -11,9 +11,9 @@ export enum TokenType {
   REFRESH_TOKEN = "refresh_token",
 }
 
-const secret = process.env["JWT_SECRET"]!;
+const secret = process.env["JWT_ACCESS_SECRET"]!;
+const expiresIn = process.env["JWT_ACCESS_EXPIRES_IN"]!;
 const refreshSecret = process.env["JWT_REFRESH_SECRET"]!;
-const expiresIn = process.env["JWT_EXPIRES_IN"]!;
 const refreshExpiresIn = process.env["JWT_REFRESH_EXPIRES_IN"];
 
 export const generateAccessToken = (userId: number) => {

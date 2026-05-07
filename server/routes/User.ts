@@ -103,6 +103,7 @@ router.post("/login", async (req: Request, res: Response) => {
       message: "Logged in successfully!",
       accessToken,
       refreshToken,
+      user,
     });
   } catch (e) {
     console.log(">> login error", e);

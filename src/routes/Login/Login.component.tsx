@@ -98,7 +98,7 @@ export default function Login(props: { disableCustomTheme?: boolean }) {
 
     try {
       await login(email, password);
-      navigate("/messenger");
+      navigate("/myaccount");
     } catch (err: any) {
       setError(err.message || "Login failed. Please try again.");
     } finally {
